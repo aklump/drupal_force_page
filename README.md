@@ -1,10 +1,4 @@
-/* $Id$ */
-
-SUMMARY: This is an API module to be used by other modules that want to force a
-page to be displayed instead of the normal page based on what is typed into the
-url box of the browser. It can be used to force a profile to be filled out for
-example, or for a product to be purchased, before allowing the user to return to
-normal website flow.
+SUMMARY: An API module to provide browser redirection based on any number of callback functions.  Used to server up alternate pages based on user or envronment states.  This is an API module to be used by other modules that want to force a page to be displayed instead of the normal page based on what is typed into the url box of the browser. It can be used to force a profile to be filled out for example, or for a product to be purchased, before allowing the user to return to normal website flow.
 
 Examples of use cases:
 
@@ -13,20 +7,10 @@ Examples of use cases:
 - You want to force a user to view a certain page and submit a form before navigating the site
 - The user must make a purchase before navigating the site.
 
-REQUIREMENTS:
-
 
 INSTALLATION:
 * Download and unzip this module into your modules directory.
 * Goto Administer > Site Building > Modules and enable this module.
-
-
-CONFIGURATION:
-*
-
-
-USAGE:
-*
 
 
 API:
