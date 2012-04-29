@@ -1,0 +1,6 @@
+; $Id$
+name = Force Page API
+description = Force a page to display based on php logic.
+core = 6.x
+version = "6.x-1.3"
+package = Other

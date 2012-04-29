@@ -1,0 +1,96 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Base module file for force_page
+ *
+ * @defgroup force_page Force Page API Module
+ * @{
+ */
+
+/**
+ * Implements hook_help().
+ *
+ * http://api.drupal.org/api/function/hook_help
+ *
+ * @param string $path
+ *   The router menu path, as defined in hook_menu(), for the help that is
+ *   being requested; e.g., 'admin/node' or 'user/edit'. If the router path
+ *   includes a % wildcard, then this will appear in $path; for example, node
+ *   pages would have $path equal to 'node/%' or 'node/%/view'. Your hook
+ *   implementation may also be called with special descriptors after a "#" sign.
+ * @param array $arg
+ *   An array that corresponds to the return value of the arg() function, for
+ *   modules that want to provide help that is specific to certain values of
+ *   wildcards in $path. For example, you could provide help for the path
+ *   'user/1' by looking for the path 'user/%' and $arg[1] == '1'. This array
+ *   should always be used rather than directly invoking arg(), because your
+ *   hook implementation may be called for other purposes besides building the
+ *   current page's help. Note that depending on which module is invoking
+ *   hook_help, $arg may contain only empty strings. Regardless, $arg[0] to
+ *   $arg[11] will always be set.
+ */
+function force_page_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#force_page':
+
+      // Return a line-break version of the module README
+      return filter_filter('process', 1, NULL, file_get_contents(dirname(__FILE__) ."/README.txt"));
+  }
+}
+
+/**
+ * Implements hook_boot().
+ */
+function force_page_init() {
+
+  global $user;
+  $pages = module_invoke_all('force_page_pages', $user);
+
+  //sort the hook responses
+  $sorted = array();
+  foreach ($pages as $goto => $data) {
+    $sorted[$data['weight']][$goto] = $data;
+  }
+  ksort($sorted);
+
+  //now go through all hook responses and act on the lowest weighted callback to
+  //return FALSE
+  $pages = array();
+  $force = FALSE;
+  foreach ($sorted as $pages) {
+    foreach ($pages as $goto => $page) {
+
+      //preserve the query string and give the chance using destination to get user back here
+      $query = drupal_query_string_encode($_GET + array('destination' => $_GET['q']), array('q'));
+      $force = (boolean) $page['test'];
+    }
+    if ($force) {
+      break;
+    }
+  }
+
+  if ($force) {
+
+    //test for allowed paths
+    $allowed_paths = isset($page['allowed_paths']) ? (array)$page['allowed_paths'] : array();
+
+    //replace <front> with actual path
+    if (($key = array_search('<front>', $allowed_paths)) && ($front = variable_get('site_frontpage', NULL))) {
+      $allowed_paths[$key] = $front;
+    }
+
+    $allowed_paths[] = $goto;
+    if (in_array($_GET['q'], $allowed_paths)) {
+      return;
+    }
+    else {
+      drupal_set_message($page['message'], 'warning', FALSE);
+
+      //without this we will have a redirect loop
+      unset($_REQUEST['destination']);
+      drupal_goto($goto, $query);
+    }
+  }
+}
