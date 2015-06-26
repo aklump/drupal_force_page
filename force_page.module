@@ -72,9 +72,11 @@ function force_page_init() {
   }
 
   if ($force) {
-
+    $current_path = $_GET['q'];
+    
     //test for allowed paths
     $allowed_paths = isset($page['allowed_paths']) ? (array)$page['allowed_paths'] : array();
+    drupal_alter('force_page_allowed_paths', $allowed_paths, $current_path);
 
     //replace <front> with actual path
     if (($key = array_search('<front>', $allowed_paths)) && ($front = variable_get('site_frontpage', NULL))) {
@@ -82,7 +84,7 @@ function force_page_init() {
     }
 
     $allowed_paths[] = $goto;
-    if (in_array($_GET['q'], $allowed_paths)) {
+    if (in_array($current_path, $allowed_paths)) {
       return;
     }
     else {
@@ -92,5 +94,14 @@ function force_page_init() {
       unset($_REQUEST['destination']);
       drupal_goto($goto, $query);
     }
+  }
+}
+
+/**
+ * Implements hook_force_page_allowed_paths_alter().
+ */
+function force_page_force_page_allowed_paths_alter($allowed_paths, $current_path) {
+  if (module_exists('masquerade')) {
+    $allowed_paths[] = 'masquerade/unswitch';
   }
 }
